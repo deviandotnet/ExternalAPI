@@ -1,4 +1,5 @@
 
+using ExternalAPI.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExternalAPI
@@ -16,6 +17,7 @@ namespace ExternalAPI
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+            builder.Services.AddScoped<RabbitPublisher>();
 
             builder.Services.AddDbContext<RecordsDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("ExternalAPIConnection")));

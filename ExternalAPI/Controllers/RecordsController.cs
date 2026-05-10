@@ -1,4 +1,5 @@
 ﻿using ExternalAPI.DTOs;
+using ExternalAPI.Helpers;
 using ExternalAPI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +12,11 @@ namespace ExternalAPI.Controllers
     public class RecordsController : ControllerBase
     {
         private readonly RecordsDbContext _context;
-        public RecordsController(RecordsDbContext context)
+        private readonly RabbitPublisher _publisher;
+        public RecordsController(RecordsDbContext context, RabbitPublisher publisher)
         {
             _context = context;
+            _publisher = publisher;
         }
 
         //post
@@ -68,10 +71,25 @@ namespace ExternalAPI.Controllers
                 Name = request.Name,
                 RecordNumber = request.RecordNumber
             };
+
             await _context.Records.AddAsync(newRecord);
             await _context.SaveChangesAsync();
 
+            var recordEvent = new RecordCreatedEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                //Version = 1,
+                Data = new RecordResponse
+                {
+                    Description = newRecord.Description,
+                    Id = newRecord.Id,
+                    Name = newRecord.Name,
+                    RecordNumber = newRecord.RecordNumber
+                }
+            };
 
+            await _publisher.PublishAsync(recordEvent);
+                      
             return CreatedAtAction(nameof(GetRecordById), new { newRecord.Id }, new { Message = "Record created successfully" });
         }
 
