@@ -16,7 +16,8 @@ namespace ExternalAPI.Helpers
         {
             _connectionFactory = new ConnectionFactory()
             {
-                HostName = "localhost" //give a proper hostname or IP address of the RabbitMQ server
+                HostName = "localhost", //give a proper hostname or IP address of the RabbitMQ server
+                Port = 15672, //default RabbitMQ port
             };
 
       
